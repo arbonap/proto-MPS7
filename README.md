@@ -12,7 +12,7 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+    $ proto_MPS7
 
 ## Development
 

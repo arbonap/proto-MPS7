@@ -4,6 +4,8 @@ require_relative "parser"
     extend Parser
 
     puts Parser::BinaryProtocol.ascii
+    @foo = Parser::BinaryProtocol.new(ARGV)
+    puts @foo.open(binary_file)
     # Parser::Normalization.welcome
     #
     # @normalization = Parser::Normalization.new(ARGV)
