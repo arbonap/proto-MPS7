@@ -1,12 +1,14 @@
 require "byebug"
 require_relative "parser"
+
   class Cli
     extend Parser
 
+    # byebug
     puts Parser::BinaryProtocol.ascii
-    @foo = Parser::BinaryProtocol.new(ARGV)
-    puts @foo.open(binary_file)
-    # Parser::Normalization.welcome
+    # Parser::BinaryProtocol.welcome
+    @protocol = Parser::BinaryProtocol.new(ARGV)
+    @protocol.open
     #
     # @normalization = Parser::Normalization.new(ARGV)
     # @normalization.truncate if File.open('normalized_data.csv', "a+").present?
