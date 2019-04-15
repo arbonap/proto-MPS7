@@ -6,5 +6,5 @@ require_relative "parser"
 
     puts Parser::BinaryProtocol.ascii
     @protocol = Parser::BinaryProtocol.new(ARGV)
-    @protocol.open
+    @protocol.parse
   end
