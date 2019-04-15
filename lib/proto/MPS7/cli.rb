@@ -1,4 +1,3 @@
-require "byebug"
 require_relative "parser"
 
   class Cli
@@ -6,5 +5,6 @@ require_relative "parser"
 
     puts Parser::BinaryProtocol.ascii
     @protocol = Parser::BinaryProtocol.new(ARGV)
-    @protocol.parse
+    calculations = @protocol.parse
+    puts Parser::BinaryProtocol.answers(calculations)
   end
