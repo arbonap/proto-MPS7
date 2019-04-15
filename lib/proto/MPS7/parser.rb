@@ -31,7 +31,7 @@ module Parser
       while binary_data_present?(data, index)
         # debit
         if debit?(data, index)
-          record = unpacked_data(data, index)
+          record = unpack_four_fields(data, index)
           # total amount in dollars of debits
           total_dollars(calculations, :debit, record)
           # for user ID 2456938384156277127,
@@ -43,7 +43,7 @@ module Parser
           index += 21
         # credit
         elsif credit?(data, index)
-          record = unpacked_data(data, index)
+          record = unpack_four_fields(data, index)
           # total amount in dollars of credits
           total_dollars(calculations, :credit, record)
           # for user ID 2456938384156277127,
@@ -55,15 +55,17 @@ module Parser
           index += 21
         # StartAutopay
         elsif start_autopay?(data, index)
-          data[index..index + 13].unpack("CL>Q>")
+          unpack_three_fields(data, index)
           # increase the total count of how many times Autopay has been started
-          calculations[:started_count] += 1
+          increase_count(calculations[:started_count])
+          # calculations[:started_count] += 1
           index += 13
         # EndAutopay
         elsif end_autopay?(data, index)
-          data[index..index + 13].unpack("CL>Q>")
+          unpack_three_fields(data, index)
           # increase the total count of how many times Autopay has been ended
-          calculations[:ended_count] += 1
+          increase_count(calculations[:ended_count])
+          # calculations[:ended_count] += 1
           index += 13
         else
           STDERR.puts "Binary does not follow custom protocol."
@@ -97,8 +99,12 @@ module Parser
       record[2] == id
     end
 
-    def unpacked_data(data, index)
+    def unpack_four_fields(data, index)
       data[index..index + 21].unpack("CL>Q>G")
+    end
+
+    def unpack_three_fields(data, index)
+      data[index..index + 13].unpack("CL>Q>")
     end
 
     def total_dollars(calculations, account, record)
@@ -113,13 +119,21 @@ module Parser
       end
     end
 
+    def increase_count(calculations)
+      calculations += 1
+    end
+
+    def monitize(money)
+      '%.2f' % money
+    end
+
     def answers(calculations)
       puts <<~CALCS.strip
-        $#{'%.2f' % calculations[:debit]} is the total amount in dollars of debits,
-        $#{'%.2f' % calculations[:credit]} is the total amount of dollars of credits,
+        $#{monitize(calculations[:debit])} is the total amount in dollars of debits,
+        $#{monitize(calculations[:credit])} is the total amount of dollars of credits,
         #{calculations[:started_count]} autopays were started,
         #{calculations[:ended_count]} autopays were ended,
-        user ID 2456938384156277127 has a balance of $#{'%.2f' % calculations['2456938384156277127']}.
+        user ID 2456938384156277127 has a balance of $#{monitize(calculations['2456938384156277127'])}.
         CALCS
     end
   end
