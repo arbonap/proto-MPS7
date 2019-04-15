@@ -10,12 +10,16 @@ module Parser
 
     def self.ascii
       # the artii gem creates ascii text
-      # this method shells it out
       `artii proto-MPS7 Parser`
     end
 
     def parse
-      contents = File.open("#{binary_file}", 'rb') { |f| f.read }
+      begin
+        contents = File.open("#{binary_file}", 'rb') { |f| f.read }
+      rescue Errno::ENOENT => e
+        STDERR.puts "No binary file given as an argument. Please include binary file to continue."
+        exit
+      end
       header = contents.unpack("a4CL>")
       # header = ["MPS7", 1, 1191182336]
 
@@ -38,7 +42,6 @@ module Parser
           if for_user_id?(record, 2456938384156277127)
             # sum the dollars of debits from the user's total balance
             user_balance(calculations, 'sum', record)
-            # calculations['2456938384156277127'] += record[3].to_d
           end
           index += 21
         # credit
@@ -50,29 +53,26 @@ module Parser
           if for_user_id?(record, 2456938384156277127)
             # subtract the dollars of credits from the user's total balance
             user_balance(calculations, 'difference', record)
-            # calculations['2456938384156277127'] -= record[3].to_d
           end
           index += 21
         # StartAutopay
         elsif start_autopay?(data, index)
           unpack_three_fields(data, index)
           # increase the total count of how many times Autopay has been started
-          increase_count(calculations[:started_count])
-          # calculations[:started_count] += 1
+          calculations[:started_count] += 1
           index += 13
         # EndAutopay
         elsif end_autopay?(data, index)
           unpack_three_fields(data, index)
           # increase the total count of how many times Autopay has been ended
-          increase_count(calculations[:ended_count])
-          # calculations[:ended_count] += 1
+          calculations[:ended_count] += 1
           index += 13
         else
           STDERR.puts "Binary does not follow custom protocol."
           exit
         end
       end
-        answers(calculations)
+      calculations
     end
 
     def binary_data_present?(data, index)
@@ -119,21 +119,17 @@ module Parser
       end
     end
 
-    def increase_count(calculations)
-      calculations += 1
-    end
-
-    def monitize(money)
+    def self.monetize(money)
       '%.2f' % money
     end
 
-    def answers(calculations)
+    def self.answers(calculations)
       puts <<~CALCS.strip
-        $#{monitize(calculations[:debit])} is the total amount in dollars of debits,
-        $#{monitize(calculations[:credit])} is the total amount of dollars of credits,
+        $#{self.monetize(calculations[:debit])} is the total amount in dollars of debits,
+        $#{self.monetize(calculations[:credit])} is the total amount of dollars of credits,
         #{calculations[:started_count]} autopays were started,
         #{calculations[:ended_count]} autopays were ended,
-        user ID 2456938384156277127 has a balance of $#{monitize(calculations['2456938384156277127'])}.
+        user ID 2456938384156277127 has a balance of $#{self.monetize(calculations['2456938384156277127'])}.
         CALCS
     end
   end

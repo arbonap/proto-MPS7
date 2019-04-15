@@ -1,5 +1,5 @@
 require "bundler/setup"
-require "proto/MPS7"
+require "proto/MPS7/parser"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -11,4 +11,8 @@ RSpec.configure do |config|
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
+end
+
+def monetize(money)
+  '%.2f' % money
 end
